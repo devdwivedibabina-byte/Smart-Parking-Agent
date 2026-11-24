@@ -1,0 +1,32 @@
+# Python byte-code and caches
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+
+# Environment Variables & Secrets (CRITICAL)
+.env
+.env.*
+*.env
+*.key
+*.pem
+*.secret
+
+# Vercel Deployment Artifacts
+.vercel/
+
+# Editor and OS Files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log

@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Parking Management Agent | AI College Project</title>
+  
+  <!-- Google Fonts: Inter & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Chart.js 4.4 -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="dark-theme">
+
+  <!-- ========================================================================= -->
+  <!-- TOP NAVIGATION / BRANDING BAR -->
+  <!-- ========================================================================= -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand-group">
+        <div class="brand-icon">
+          <i class="fa-solid fa-square-parking"></i>
+          <span class="ai-spark"><i class="fa-solid fa-microchip"></i></span>
+        </div>
+        <div class="brand-text">
+          <h1>Smart Parking Management Agent</h1>
+          <p class="tagline">Autonomous Rule-Based Rational Agent for Optimal Space Allocation</p>
+        </div>
+      </div>
+
+      <!-- Live Simulation & Action Toolbar -->
+      <div class="header-actions">
+        <div class="sim-status-pill" id="simStatusPill">
+          <span class="pulse-dot"></span>
+          <span class="sim-text" id="simStatusText">Simulation: Idle</span>
+        </div>
+
+        <button class="btn btn-outline" id="btnAutoSim" title="Toggle Auto Traffic Simulation">
+          <i class="fa-solid fa-play" id="simPlayIcon"></i>
+          <span id="simBtnLabel">Live Traffic</span>
+        </button>
+
+        <button class="btn btn-outline" id="btnSimStep" title="Simulate 1 Step of Traffic Arrivals & Departures">
+          <i class="fa-solid fa-arrows-rotate"></i>
+          <span>Traffic Step</span>
+        </button>
+
+        <button class="btn btn-outline" id="btnRandomize" title="Randomize Parking Bay Occupancy">
+          <i class="fa-solid fa-shuffle"></i>
+          <span>Randomize</span>
+        </button>
+
+        <button class="btn btn-outline" id="btnResetLot" title="Reset Lot to Default Baseline">
+          <i class="fa-solid fa-arrow-rotate-left"></i>
+          <span>Reset</span>
+        </button>
+
+        <button class="btn btn-primary" id="btnOpenDocs" title="View Full Academic Viva Documentation">
+          <i class="fa-solid fa-book-open"></i>
+          <span>Academic Docs</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- MAIN APP CONTAINER -->
+  <!-- ========================================================================= -->
+  <main class="main-content">
+
+    <!-- Live Event Ticker -->
+    <div class="event-ticker-banner" id="eventTickerBanner">
+      <div class="ticker-label"><i class="fa-solid fa-satellite-dish"></i> IoT Telemetry:</div>
+      <div class="ticker-message" id="tickerMessage">System initialized. 36 smart parking bays monitored across Zones A, B, and C.</div>
+      <div class="ticker-time" id="tickerTime">Ready</div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION A: METRIC CARDS (MAIN DASHBOARD) -->
+    <!-- ========================================================================= -->
+    <section class="metrics-grid">
+      <div class="metric-card card-total">
+        <div class="metric-icon"><i class="fa-solid fa-warehouse"></i></div>
+        <div class="metric-info">
+          <span class="metric-label">Total Spaces</span>
+          <h2 class="metric-value" id="valTotalSpaces">36</h2>
+          <span class="metric-sub">3 Zones (A, B, C)</span>
+        </div>
+      </div>
+
+      <div class="metric-card card-available">
+        <div class="metric-icon"><i class="fa-solid fa-circle-check"></i></div>
+        <div class="metric-info">
+          <span class="metric-label">Available Spaces</span>
+          <h2 class="metric-value text-green" id="valAvailableSpaces">--</h2>
+          <span class="metric-sub text-green"><i class="fa-solid fa-arrow-trend-up"></i> Ready to Park</span>
+        </div>
+      </div>
+
+      <div class="metric-card card-occupied">
+        <div class="metric-icon"><i class="fa-solid fa-car-side"></i></div>
+        <div class="metric-info">
+          <span class="metric-label">Occupied Spaces</span>
+          <h2 class="metric-value text-red" id="valOccupiedSpaces">--</h2>
+          <span class="metric-sub text-red">Active Vehicles</span>
+        </div>
+      </div>
+
+      <div class="metric-card card-reserved">
+        <div class="metric-icon"><i class="fa-solid fa-ticket"></i></div>
+        <div class="metric-info">
+          <span class="metric-label">Reserved Spaces</span>
+          <h2 class="metric-value text-amber" id="valReservedSpaces">--</h2>
+          <span class="metric-sub text-amber">Permit / Reserved</span>
+        </div>
+      </div>
+
+      <div class="metric-card card-occupancy">
+        <div class="metric-icon"><i class="fa-solid fa-chart-pie"></i></div>
+        <div class="metric-info">
+          <span class="metric-label">Occupancy Rate</span>
+          <h2 class="metric-value text-cyan" id="valOccupancyRate">--%</h2>
+          <div class="progress-bar-wrap">
+            <div class="progress-bar-fill" id="occupancyProgress"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="metric-card card-agent-success">
+        <div class="metric-icon"><i class="fa-solid fa-robot"></i></div>
+        <div class="metric-info">
+          <span class="metric-label">Agent Success Rate</span>
+          <h2 class="metric-value text-blue" id="valAgentSuccessRate">100%</h2>
+          <span class="metric-sub" id="valAgentTotalAllocations">0 Successful Allocations</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- DASHBOARD TWO-COLUMN WORKSPACE -->
+    <!-- ========================================================================= -->
+    <div class="workspace-grid">
+
+      <!-- ======================================================================= -->
+      <!-- LEFT COLUMN: PARKING LOT VISUALIZATION + FLOWCHART + CHARTS -->
+      <!-- ======================================================================= -->
+      <div class="workspace-left">
+
+        <!-- SECTION B: PARKING SPACE VISUALIZATION -->
+        <div class="panel parking-map-panel">
+          <div class="panel-header">
+            <div class="panel-title-group">
+              <i class="fa-solid fa-map-location-dot"></i>
+              <h3>Interactive Parking Facility Map</h3>
+              <span class="badge badge-subtle">Live Sensor Grid (36 Bays)</span>
+            </div>
+            
+            <div class="map-controls">
+              <!-- Search Box -->
+              <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="slotSearchInput" placeholder="Search Slot ID (e.g., P05)...">
+              </div>
+
+              <!-- Filter Type -->
+              <select id="typeFilterSelect" class="filter-select" title="Filter by vehicle type">
+                <option value="All">All Types</option>
+                <option value="Regular">Regular Only</option>
+                <option value="EV">EV Charging Only</option>
+                <option value="Disabled">Accessible Only</option>
+              </select>
+
+              <!-- Filter Status -->
+              <select id="statusFilterSelect" class="filter-select" title="Filter by occupancy status">
+                <option value="All">All Statuses</option>
+                <option value="Available">Available</option>
+                <option value="Occupied">Occupied</option>
+                <option value="Reserved">Reserved</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Color Legend & Map Navigation Bar -->
+          <div class="map-legend-bar">
+            <div class="legend-item"><span class="legend-badge bg-green"></span> Available</div>
+            <div class="legend-item"><span class="legend-badge bg-red"></span> Occupied</div>
+            <div class="legend-item"><span class="legend-badge bg-amber"></span> Reserved</div>
+            <div class="legend-item"><span class="legend-badge bg-blue glow"></span> AI Recommended</div>
+            <div class="legend-divider"></div>
+            <div class="legend-item"><i class="fa-solid fa-car text-muted"></i> Regular</div>
+            <div class="legend-item"><i class="fa-solid fa-bolt text-cyan"></i> EV Fast Charge</div>
+            <div class="legend-item"><i class="fa-solid fa-wheelchair text-blue"></i> Accessible</div>
+            <div class="legend-divider"></div>
+            <div class="legend-hint"><i class="fa-solid fa-hand-pointer"></i> Click any slot to inspect or toggle status</div>
+          </div>
+
+          <!-- The Parking Lot Container -->
+          <div class="parking-lot-canvas" id="parkingLotContainer">
+            
+            <!-- Entrance Gates Annotations -->
+            <div class="gate-marker gate-north" id="gateMarkerA" title="Entrance Gate A (Coordinates: 0, 10)">
+              <i class="fa-solid fa-door-open"></i> Gate A (West Entry)
+            </div>
+            <div class="gate-marker gate-south" id="gateMarkerB" title="Entrance Gate B (Coordinates: 15, 0)">
+              <i class="fa-solid fa-door-open"></i> Gate B (South Entry)
+            </div>
+            <div class="gate-marker gate-east" id="gateMarkerC" title="Entrance Gate C (Coordinates: 30, 10)">
+              <i class="fa-solid fa-door-open"></i> Gate C (East Entry)
+            </div>
+
+            <!-- Driver GPS Location Pin on Map -->
+            <div class="driver-pin-marker" id="driverPinMarker" title="Current Driver Position">
+              <div class="pin-pulse"></div>
+              <i class="fa-solid fa-location-crosshairs"></i>
+              <span class="pin-label" id="driverPinLabel">Driver (0, 10)</span>
+            </div>
+
+            <!-- ZONE A: Upper Row of Bays (P01 - P12) -->
+            <div class="zone-block zone-a">
+              <div class="zone-banner">
+                <span class="zone-tag">ZONE A</span>
+                <span class="zone-desc">North Wing • Fast Exit Walkway</span>
+              </div>
+              <div class="slots-row" id="slotsRowZoneA">
+                <!-- Dynamically injected via JavaScript -->
+              </div>
+            </div>
+
+            <!-- Driving Lane 1 -->
+            <div class="driving-aisle">
+              <div class="road-markings">
+                <span class="lane-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+                <span class="speed-limit">AISLE 1 • ONE WAY • 10 KM/H</span>
+                <span class="lane-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+                <span class="pedestrian-crossing"><i class="fa-solid fa-person-walking"></i> CROSSWALK</span>
+                <span class="lane-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+              </div>
+            </div>
+
+            <!-- ZONE B: Central Double Row of Bays (P13 - P24) -->
+            <div class="zone-block zone-b">
+              <div class="zone-banner">
+                <span class="zone-tag">ZONE B</span>
+                <span class="zone-desc">Central Plaza • EV Hub & Accessible Access</span>
+              </div>
+              <div class="slots-row double-bay-top" id="slotsRowZoneB1">
+                <!-- P13 - P18 injected here -->
+              </div>
+              <div class="bay-separator"></div>
+              <div class="slots-row double-bay-bottom" id="slotsRowZoneB2">
+                <!-- P19 - P24 injected here -->
+              </div>
+            </div>
+
+            <!-- Driving Lane 2 -->
+            <div class="driving-aisle">
+              <div class="road-markings">
+                <span class="lane-arrow"><i class="fa-solid fa-arrow-left"></i></span>
+                <span class="speed-limit">AISLE 2 • ONE WAY • 10 KM/H</span>
+                <span class="lane-arrow"><i class="fa-solid fa-arrow-left"></i></span>
+                <span class="pedestrian-crossing"><i class="fa-solid fa-person-walking"></i> CROSSWALK</span>
+                <span class="lane-arrow"><i class="fa-solid fa-arrow-left"></i></span>
+              </div>
+            </div>
+
+            <!-- ZONE C: Lower Row of Bays (P25 - P36) -->
+            <div class="zone-block zone-c">
+              <div class="zone-banner">
+                <span class="zone-tag">ZONE C</span>
+                <span class="zone-desc">South Wing • Rapid Transit & Accessible Bays</span>
+              </div>
+              <div class="slots-row" id="slotsRowZoneC">
+                <!-- P25 - P36 injected here -->
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- SECTION F: AI AGENT WORKFLOW FLOWCHART -->
+        <div class="panel workflow-panel">
+          <div class="panel-header">
+            <div class="panel-title-group">
+              <i class="fa-solid fa-diagram-project"></i>
+              <h3>AI Decision-Making Pipeline Workflow</h3>
+              <span class="badge badge-subtle">Sequential State Transitions</span>
+            </div>
+          </div>
+          <div class="workflow-stepper" id="workflowStepper">
+            <div class="wf-step" id="wfStep1">
+              <div class="step-num">1</div>
+              <div class="step-content">
+                <strong>Driver Coordinates</strong>
+                <span>Sense (x, y) location</span>
+              </div>
+            </div>
+            <div class="wf-arrow"><i class="fa-solid fa-angle-right"></i></div>
+
+            <div class="wf-step" id="wfStep2">
+              <div class="step-num">2</div>
+              <div class="step-content">
+                <strong>Ingest Telemetry</strong>
+                <span>Query 36 slot states</span>
+              </div>
+            </div>
+            <div class="wf-arrow"><i class="fa-solid fa-angle-right"></i></div>
+
+            <div class="wf-step" id="wfStep3">
+              <div class="step-num">3</div>
+              <div class="step-content">
+                <strong>Filter Occupancy</strong>
+                <span>Discard busy/reserved</span>
+              </div>
+            </div>
+            <div class="wf-arrow"><i class="fa-solid fa-angle-right"></i></div>
+
+            <div class="wf-step" id="wfStep4">
+              <div class="step-num">4</div>
+              <div class="step-content">
+                <strong>Match Vehicle</strong>
+                <span>Regular / EV / Disabled</span>
+              </div>
+            </div>
+            <div class="wf-arrow"><i class="fa-solid fa-angle-right"></i></div>
+
+            <div class="wf-step" id="wfStep5">
+              <div class="step-num">5</div>
+              <div class="step-content">
+                <strong>Euclidean Dist</strong>
+                <span>d = &radic;(&Delta;x&sup2; + &Delta;y&sup2;)</span>
+              </div>
+            </div>
+            <div class="wf-arrow"><i class="fa-solid fa-angle-right"></i></div>
+
+            <div class="wf-step" id="wfStep6">
+              <div class="step-num">6</div>
+              <div class="step-content">
+                <strong>Max Threshold</strong>
+                <span>Filter d &le; Max Dist</span>
+              </div>
+            </div>
+            <div class="wf-arrow"><i class="fa-solid fa-angle-right"></i></div>
+
+            <div class="wf-step" id="wfStep7">
+              <div class="step-num">7</div>
+              <div class="step-content">
+                <strong>Utility & Tie-Break</strong>
+                <span>min(d) &amp; alpha tie-break</span>
+              </div>
+            </div>
+            <div class="wf-arrow"><i class="fa-solid fa-angle-right"></i></div>
+
+            <div class="wf-step" id="wfStep8">
+              <div class="step-num">8</div>
+              <div class="step-content">
+                <strong>Actuate & Lock</strong>
+                <span>Highlight &amp; Guide</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 6: VISUAL ANALYTICS & CHARTS -->
+        <div class="panel charts-panel">
+          <div class="panel-header">
+            <div class="panel-title-group">
+              <i class="fa-solid fa-chart-column"></i>
+              <h3>Real-Time Facility & Agent Analytics</h3>
+              <span class="badge badge-subtle">Chart.js Visualization</span>
+            </div>
+          </div>
+          <div class="charts-grid">
+            <div class="chart-box">
+              <div class="chart-title">Lot Occupancy Distribution</div>
+              <div class="chart-canvas-wrap">
+                <canvas id="occupancyDoughnutChart"></canvas>
+              </div>
+            </div>
+            <div class="chart-box">
+              <div class="chart-title">Slot Types vs. Current Availability</div>
+              <div class="chart-canvas-wrap">
+                <canvas id="typeBarChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ======================================================================= -->
+      <!-- RIGHT COLUMN: AI AGENT INTERFACE + RECOMMENDATION + RATIONALITY + LOGS -->
+      <!-- ======================================================================= -->
+      <div class="workspace-right">
+
+        <!-- SECTION C: INTELLIGENT PARKING AGENT CONTROLS -->
+        <div class="panel ai-agent-panel">
+          <div class="panel-header">
+            <div class="panel-title-group">
+              <i class="fa-solid fa-brain-circuit text-cyan"></i>
+              <h3>Intelligent Parking Agent</h3>
+              <span class="badge badge-ai"><i class="fa-solid fa-bolt"></i> AI Core</span>
+            </div>
+          </div>
+
+          <form id="agentQueryForm" class="agent-form" onsubmit="return false;">
+            
+            <!-- Driver Location Selector -->
+            <div class="form-group">
+              <label class="form-label">
+                <i class="fa-solid fa-location-dot text-cyan"></i> Driver Current Location:
+              </label>
+              <div class="location-preset-grid">
+                <button type="button" class="btn-preset active" data-x="0.0" data-y="10.0">
+                  <i class="fa-solid fa-door-open"></i> Gate A (0, 10)
+                </button>
+                <button type="button" class="btn-preset" data-x="15.0" data-y="0.0">
+                  <i class="fa-solid fa-door-open"></i> Gate B (15, 0)
+                </button>
+                <button type="button" class="btn-preset" data-x="30.0" data-y="10.0">
+                  <i class="fa-solid fa-door-open"></i> Gate C (30, 10)
+                </button>
+                <button type="button" class="btn-preset" data-x="15.0" data-y="12.0">
+                  <i class="fa-solid fa-crosshairs"></i> Center Plaza (15, 12)
+                </button>
+              </div>
+              
+              <!-- Manual Coordinates Coordinates Accordion -->
+              <div class="coords-manual-row">
+                <div class="input-coord">
+                  <span class="coord-tag">X (m):</span>
+                  <input type="number" id="driverXInput" value="0.0" step="0.5" min="0" max="40">
+                </div>
+                <div class="input-coord">
+                  <span class="coord-tag">Y (m):</span>
+                  <input type="number" id="driverYInput" value="10.0" step="0.5" min="0" max="25">
+                </div>
+                <button type="button" class="btn btn-sm btn-subtle" id="btnMapClickMode" title="Click anywhere on the parking lot map to place driver">
+                  <i class="fa-solid fa-crosshairs"></i> Click on Map
+                </button>
+              </div>
+            </div>
+
+            <!-- Vehicle Parking Type Preference -->
+            <div class="form-group">
+              <label class="form-label" for="vehicleTypeSelect">
+                <i class="fa-solid fa-car-tunnel text-cyan"></i> Vehicle / Bay Requirement:
+              </label>
+              <select id="vehicleTypeSelect" class="form-select">
+                <option value="Regular" selected>🚗 Regular Vehicle (Standard Bay)</option>
+                <option value="EV">⚡ Electric Vehicle (Level 2 / Fast DC Charging)</option>
+                <option value="Disabled">♿ Accessible / Disabled (Ramp & Extra Clearance)</option>
+              </select>
+            </div>
+
+            <!-- Maximum Acceptable Walking Distance Slider -->
+            <div class="form-group">
+              <div class="slider-label-row">
+                <label class="form-label" for="maxDistSlider">
+                  <i class="fa-solid fa-person-walking text-cyan"></i> Max Walking Distance:
+                </label>
+                <span class="slider-badge" id="maxDistValue">50 meters</span>
+              </div>
+              <input type="range" id="maxDistSlider" min="5" max="80" step="5" value="50" class="form-range">
+              <div class="range-markers">
+                <span>5m</span>
+                <span>25m</span>
+                <span>50m</span>
+                <span>80m</span>
+              </div>
+            </div>
+
+            <!-- Agent Run Button -->
+            <button type="button" class="btn btn-find-parking" id="btnFindParking">
+              <i class="fa-solid fa-wand-magic-sparkles"></i>
+              <span>Find Best Parking Space</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- AI AGENT RECOMMENDATION RESULT CARD -->
+        <div class="panel recommendation-panel" id="recommendationPanel">
+          <div class="panel-header">
+            <div class="panel-title-group">
+              <i class="fa-solid fa-bullseye text-green"></i>
+              <h3>AI Agent Recommendation</h3>
+            </div>
+            <span class="badge badge-success" id="recBadgeStatus">Optimal Found</span>
+          </div>
+
+          <div class="recommendation-body" id="recommendationBody">
+            <!-- Default Placeholder before run -->
+            <div class="rec-empty-state" id="recEmptyState">
+              <i class="fa-solid fa-compass-drafting"></i>
+              <h4>Ready for Perception & Decision</h4>
+              <p>Select your entrance gate or coordinates above and click <strong>"Find Best Parking Space"</strong> to trigger rational agent evaluation.</p>
+            </div>
+
+            <!-- Populated Result Card -->
+            <div class="rec-content hidden" id="recContent">
+              <div class="winner-hero">
+                <div class="winner-slot-badge">
+                  <span class="slot-callout">RECOMMENDED BAY</span>
+                  <h1 class="slot-winner-id" id="recSlotId">P20</h1>
+                  <span class="slot-zone-pill" id="recSlotZone">Zone B</span>
+                </div>
+                <div class="winner-metrics">
+                  <div class="w-metric">
+                    <span class="w-label">Walking Distance</span>
+                    <span class="w-value text-cyan" id="recSlotDist">9.5 m</span>
+                  </div>
+                  <div class="w-metric">
+                    <span class="w-label">Estimated Walk</span>
+                    <span class="w-value text-green" id="recSlotTime">~0.2 min</span>
+                  </div>
+                  <div class="w-metric">
+                    <span class="w-label">Bay Type</span>
+                    <span class="w-value" id="recSlotType">Regular</span>
+                  </div>
+                  <div class="w-metric">
+                    <span class="w-label">Hourly Rate</span>
+                    <span class="w-value text-amber" id="recSlotRate">$2.50 / hr</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Rational Justification -->
+              <div class="rec-explanation-box">
+                <div class="box-title">
+                  <i class="fa-solid fa-lightbulb text-amber"></i> Rational Decision Explanation:
+                </div>
+                <p class="explanation-text" id="recRationalText">
+                  Slot P20 is the rational optimal selection. It satisfies all constraints: it is currently Available, matches vehicle type 'Regular', and minimizes walking distance.
+                </p>
+              </div>
+
+              <!-- Step-by-Step AI Reasoning Trail -->
+              <div class="reasoning-accordion">
+                <button type="button" class="reasoning-toggle-btn" id="reasoningToggleBtn">
+                  <span><i class="fa-solid fa-microscope"></i> Step-by-Step AI Filtering Trail</span>
+                  <i class="fa-solid fa-chevron-down" id="reasoningChevron"></i>
+                </button>
+                <div class="reasoning-list hidden" id="reasoningList">
+                  <!-- Steps injected here -->
+                </div>
+              </div>
+
+              <!-- Backup Alternative Options -->
+              <div class="alternatives-box" id="alternativesBox">
+                <div class="box-subtitle"><i class="fa-solid fa-list-check"></i> Runner-up Feasible Alternatives:</div>
+                <div class="alternatives-grid" id="alternativesGrid">
+                  <!-- Injected via JS -->
+                </div>
+              </div>
+
+              <!-- Driver Action CTA -->
+              <div class="rec-actions-row">
+                <button type="button" class="btn btn-park-action" id="btnParkInSlot">
+                  <i class="fa-solid fa-square-check"></i>
+                  <span>Simulate Driver Parking in Slot</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION D: RATIONAL AGENT DEMONSTRATION -->
+        <div class="panel rational-agent-panel">
+          <div class="panel-header">
+            <div class="panel-title-group">
+              <i class="fa-solid fa-scale-balanced text-cyan"></i>
+              <h3>Rational Agent Behavior Formalization</h3>
+              <span class="badge badge-subtle">AI Theory in Action</span>
+            </div>
+          </div>
+          
+          <div class="rational-cards-grid">
+            <div class="rational-subcard">
+              <div class="subcard-title"><i class="fa-solid fa-eye text-cyan"></i> Current Percept</div>
+              <p class="subcard-text" id="perceptSummary">
+                Driver at (0.0m, 10.0m), Preferred: Regular, Max Distance: 50.0m. Telemetry: 36 slots sensed.
+              </p>
+            </div>
+
+            <div class="rational-subcard">
+              <div class="subcard-title"><i class="fa-solid fa-bolt text-amber"></i> Allowable Action Space</div>
+              <p class="subcard-text">
+                A = { Allocate(s) | s &isin; S<sub>feasible</sub> } &cup; { Reject / Request Relaxation }
+              </p>
+            </div>
+
+            <div class="rational-subcard">
+              <div class="subcard-title"><i class="fa-solid fa-function text-blue"></i> Utility Function</div>
+              <p class="subcard-text">
+                U(s) = - Euclidean_Distance(driver, s)<br>
+                Optimal Action: s* = argmax U(s) = argmin d(driver, s)
+              </p>
+            </div>
+
+            <div class="rational-subcard">
+              <div class="subcard-title"><i class="fa-solid fa-shield-halved text-green"></i> Rationality Criterion</div>
+              <p class="subcard-text">
+                Does the agent maximize expected utility given current percepts and built-in knowledge? <strong>Yes.</strong>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- DECISION LOG AUDIT TRAIL -->
+        <div class="panel history-panel">
+          <div class="panel-header">
+            <div class="panel-title-group">
+              <i class="fa-solid fa-clock-rotate-left"></i>
+              <h3>Agent Decision Log &amp; Audit Trail</h3>
+            </div>
+            <button class="btn btn-sm btn-subtle" id="btnClearHistoryBtn" title="Clear table view">Clear View</button>
+          </div>
+          <div class="history-table-wrap">
+            <table class="history-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Time</th>
+                  <th>Location</th>
+                  <th>Type</th>
+                  <th>Winner</th>
+                  <th>Dist</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="historyTableBody">
+                <tr class="empty-history-row">
+                  <td colspan="7" class="text-center text-muted">No decisions recorded yet. Run the agent above!</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION E: PEAS FORMAL REPRESENTATION SECTION -->
+    <!-- ========================================================================= -->
+    <section class="peas-section">
+      <div class="section-title-wrap">
+        <div class="section-badge">ARTIFICIAL INTELLIGENCE FORMALISM</div>
+        <h2>PEAS Agent Representation</h2>
+        <p class="section-desc">Formal specification of the Intelligent Agent operating environment (Russell &amp; Norvig Framework)</p>
+      </div>
+
+      <div class="peas-grid">
+        
+        <!-- P - PERFORMANCE MEASURE -->
+        <div class="peas-card peas-p">
+          <div class="peas-header">
+            <div class="peas-letter">P</div>
+            <div class="peas-meta">
+              <h3>Performance Measure</h3>
+              <span>Evaluation criteria for agent success</span>
+            </div>
+          </div>
+          <ul class="peas-list">
+            <li><i class="fa-solid fa-circle-check text-green"></i> <strong>Minimize walking distance:</strong> Shortest Euclidean walk from bay to entrance.</li>
+            <li><i class="fa-solid fa-circle-check text-green"></i> <strong>Minimize search latency:</strong> Rapid O(N) constraint-based recommendation.</li>
+            <li><i class="fa-solid fa-circle-check text-green"></i> <strong>Zero conflict allocation:</strong> Never recommend occupied or reserved spots.</li>
+            <li><i class="fa-solid fa-circle-check text-green"></i> <strong>Accessibility compliance:</strong> Guarantee matching EV &amp; Disabled requirements.</li>
+          </ul>
+        </div>
+
+        <!-- E - ENVIRONMENT -->
+        <div class="peas-card peas-e">
+          <div class="peas-header">
+            <div class="peas-letter">E</div>
+            <div class="peas-meta">
+              <h3>Environment</h3>
+              <span>The operational world the agent observes</span>
+            </div>
+          </div>
+          <ul class="peas-list">
+            <li><i class="fa-solid fa-circle-nodes text-cyan"></i> <strong>36 Discrete Parking Bays:</strong> Divided into Zones A, B, and C.</li>
+            <li><i class="fa-solid fa-circle-nodes text-cyan"></i> <strong>Continuous 2D Coordinates:</strong> Metric X, Y positions in meters.</li>
+            <li><i class="fa-solid fa-circle-nodes text-cyan"></i> <strong>Dynamic Traffic:</strong> Real-time stochastic arrivals and departures.</li>
+            <li><i class="fa-solid fa-circle-nodes text-cyan"></i> <strong>Heterogeneous Bay Types:</strong> Standard, EV Fast Charger, Accessible.</li>
+          </ul>
+        </div>
+
+        <!-- A - ACTUATORS -->
+        <div class="peas-card peas-a">
+          <div class="peas-header">
+            <div class="peas-letter">A</div>
+            <div class="peas-meta">
+              <h3>Actuators</h3>
+              <span>How the agent impacts the environment</span>
+            </div>
+          </div>
+          <ul class="peas-list">
+            <li><i class="fa-solid fa-hand-holding-hand text-blue"></i> <strong>Visual Guidance Display:</strong> Highlights winning slot on dashboard map.</li>
+            <li><i class="fa-solid fa-hand-holding-hand text-blue"></i> <strong>Slot Reservation Trigger:</strong> Locks bay state to prevent race conditions.</li>
+            <li><i class="fa-solid fa-hand-holding-hand text-blue"></i> <strong>Telemetry Notifications:</strong> Displays walking time &amp; distance metric.</li>
+            <li><i class="fa-solid fa-hand-holding-hand text-blue"></i> <strong>Rational Rationale Output:</strong> Delivers explainable AI reasoning trail.</li>
+          </ul>
+        </div>
+
+        <!-- S - SENSORS -->
+        <div class="peas-card peas-s">
+          <div class="peas-header">
+            <div class="peas-letter">S</div>
+            <div class="peas-meta">
+              <h3>Sensors</h3>
+              <span>How the agent perceives the environment</span>
+            </div>
+          </div>
+          <ul class="peas-list">
+            <li><i class="fa-solid fa-radar text-amber"></i> <strong>Simulated IoT Ground Sensors:</strong> Ultrasonic telemetry of slot occupancy.</li>
+            <li><i class="fa-solid fa-radar text-amber"></i> <strong>Driver GPS / Gate Tag:</strong> Ingests entry gate coordinates (x, y).</li>
+            <li><i class="fa-solid fa-radar text-amber"></i> <strong>User Preference Selector:</strong> Captures vehicle constraint profile.</li>
+            <li><i class="fa-solid fa-radar text-amber"></i> <strong>Endurance Threshold Sensor:</strong> Driver maximum walking boundary.</li>
+          </ul>
+        </div>
+
+      </div>
+
+      <!-- Environment Characteristics Table -->
+      <div class="env-props-card">
+        <div class="props-title">
+          <i class="fa-solid fa-table-list text-cyan"></i>
+          <h4>Agent Operating Environment Classification (Russell &amp; Norvig AI Taxonomy)</h4>
+        </div>
+        <div class="props-grid">
+          <div class="prop-item">
+            <span class="prop-key">Observability</span>
+            <span class="prop-val">Fully Observable (IoT telemetry provides complete bay state)</span>
+          </div>
+          <div class="prop-item">
+            <span class="prop-key">Determinism</span>
+            <span class="prop-val">Deterministic allocation given static snapshot; Stochastic traffic</span>
+          </div>
+          <div class="prop-item">
+            <span class="prop-key">Episodic vs Sequential</span>
+            <span class="prop-val">Episodic (Each recommendation episode evaluates the current state)</span>
+          </div>
+          <div class="prop-item">
+            <span class="prop-key">Static vs Dynamic</span>
+            <span class="prop-val">Dynamic (Occupancy changes independently while agent deliberates)</span>
+          </div>
+          <div class="prop-item">
+            <span class="prop-key">Discrete vs Continuous</span>
+            <span class="prop-val">Discrete bays &amp; states with continuous 2D spatial coordinates</span>
+          </div>
+          <div class="prop-item">
+            <span class="prop-key">Agent Architecture</span>
+            <span class="prop-val">Utility-Based Goal Agent (Maximizes proximity utility function)</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: SLOT INSPECTOR & CONTROLLER -->
+  <!-- ========================================================================= -->
+  <div class="modal-backdrop hidden" id="slotModalBackdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="modal-slot-id" id="modalSlotId">P01</span>
+          <span class="badge" id="modalSlotStatusBadge">Available</span>
+        </div>
+        <button type="button" class="btn-close" id="btnCloseSlotModal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="modal-info-grid">
+          <div class="info-cell">
+            <span class="cell-label">Zone</span>
+            <span class="cell-value" id="modalSlotZone">Zone A</span>
+          </div>
+          <div class="info-cell">
+            <span class="cell-label">Bay Type</span>
+            <span class="cell-value" id="modalSlotType">EV Charging</span>
+          </div>
+          <div class="info-cell">
+            <span class="cell-label">Coordinates</span>
+            <span class="cell-value" id="modalSlotCoords">(3.0m, 4.0m)</span>
+          </div>
+          <div class="info-cell">
+            <span class="cell-label">Distance from Driver</span>
+            <span class="cell-value text-cyan" id="modalSlotDist">12.5 m</span>
+          </div>
+          <div class="info-cell">
+            <span class="cell-label">Hourly Rate</span>
+            <span class="cell-value text-amber" id="modalSlotRate">$3.50 / hr</span>
+          </div>
+          <div class="info-cell">
+            <span class="cell-label">Special Features</span>
+            <span class="cell-value" id="modalSlotFeatures">Level 2 Fast Charger</span>
+          </div>
+        </div>
+
+        <div class="modal-actions-box">
+          <div class="action-heading">Manual Slot Override (Viva Demonstration):</div>
+          <div class="action-btn-row">
+            <button type="button" class="btn btn-sm btn-outline" id="btnToggleSlotStatus">
+              <i class="fa-solid fa-toggle-on"></i> Cycle Status
+            </button>
+            <button type="button" class="btn btn-sm btn-outline text-green" id="btnSetSlotAvailable">
+              <i class="fa-solid fa-circle-check"></i> Set Available
+            </button>
+            <button type="button" class="btn btn-sm btn-outline text-red" id="btnSetSlotOccupied">
+              <i class="fa-solid fa-car-side"></i> Set Occupied
+            </button>
+            <button type="button" class="btn btn-sm btn-outline text-amber" id="btnSetSlotReserved">
+              <i class="fa-solid fa-ticket"></i> Set Reserved
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: ACADEMIC DOCUMENTATION & VIVA GUIDE -->
+  <!-- ========================================================================= -->
+  <div class="modal-backdrop hidden" id="docsModalBackdrop">
+    <div class="modal-card modal-docs-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <i class="fa-solid fa-graduation-cap text-cyan"></i>
+          <h3>Smart Parking Management Agent — Academic Documentation</h3>
+        </div>
+        <button type="button" class="btn-close" id="btnCloseDocsModal">&times;</button>
+      </div>
+
+      <div class="modal-body docs-body">
+        
+        <!-- Navigation Sub-Tabs -->
+        <div class="docs-nav-tabs">
+          <button class="doc-tab active" data-tab="doc-overview">1. Overview &amp; Problem</button>
+          <button class="doc-tab" data-tab="doc-ai">2. AI Principles &amp; PEAS</button>
+          <button class="doc-tab" data-tab="doc-algorithm">3. Algorithm &amp; Math</button>
+          <button class="doc-tab" data-tab="doc-evaluation">4. Advantages &amp; Future Scope</button>
+          <button class="doc-tab" data-tab="doc-viva">5. Viva Q&amp;A Guide</button>
+        </div>
+
+        <!-- TAB 1: OVERVIEW & PROBLEM -->
+        <div class="doc-tab-content active" id="doc-overview">
+          <h4>1.1 Project Title</h4>
+          <p><strong>Smart Parking Management Agent (Autonomous Rule-Based Rational Agent)</strong></p>
+
+          <h4>1.2 Problem Statement</h4>
+          <p>
+            In modern urban environments, rapid vehicle population growth has severely congested parking infrastructure. Studies indicate that up to <strong>30% of urban traffic congestion</strong> in commercial districts is caused by drivers cruising and hunting for available parking spots. This causes:
+          </p>
+          <ul>
+            <li>Massive wastage of non-renewable fossil fuel and battery charge.</li>
+            <li>Excessive emission of greenhouse gases ($CO_2$, particulate matter).</li>
+            <li>Significant driver frustration, psychological stress, and productive time loss.</li>
+            <li>Disruptive bottlenecking of entrance and exit thoroughfares.</li>
+          </ul>
+
+          <h4>1.3 Objectives</h4>
+          <ul>
+            <li>Design and develop a goal- and utility-based rational intelligent agent in Python.</li>
+            <li>Implement real-time sensor telemetry ingestion and multi-parameter constraint satisfaction.</li>
+            <li>Compute precise 2D Euclidean spatial metrics to minimize walking distance.</li>
+            <li>Provide a dynamic, interactive smart-city dashboard with visual slot map, analytics, and simulated stochastic traffic.</li>
+            <li>Present formal Artificial Intelligence principles (PEAS representation, rational behavior, tie-breaking rules) for academic defense.</li>
+          </ul>
+        </div>
+
+        <!-- TAB 2: AI PRINCIPLES & PEAS -->
+        <div class="doc-tab-content" id="doc-ai">
+          <h4>2.1 Intelligent Agent Formulation</h4>
+          <p>
+            In AI, an <strong>agent</strong> is anything that can be viewed as perceiving its environment through sensors and acting upon that environment through actuators (Russell &amp; Norvig). Mathematically, an agent function maps percept sequences to actions:
+          </p>
+          <div class="math-block">
+            f: P* &rarr; A
+          </div>
+
+          <h4>2.2 Rational Agent Definition</h4>
+          <p>
+            A <strong>rational agent</strong> is one that does the right thing. Conceptually, every entry in the table for the agent function is filled out correctly. The right action is the one that maximizes the expected value of the performance measure, given the evidence provided by the percept sequence and built-in knowledge.
+          </p>
+
+          <h4>2.3 Formal PEAS Specification</h4>
+          <table class="doc-table">
+            <thead>
+              <tr>
+                <th>PEAS Component</th>
+                <th>Definition in Smart Parking System</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Performance Measure (P)</strong></td>
+                <td>Minimize driver walking distance, minimize latency, 100% allocation accuracy, zero collision/occupancy conflicts.</td>
+              </tr>
+              <tr>
+                <td><strong>Environment (E)</strong></td>
+                <td>36 parking bays across Zones A, B, and C; 2D metric grid coordinates; dynamic occupancy; heterogeneous vehicle classes.</td>
+              </tr>
+              <tr>
+                <td><strong>Actuators (A)</strong></td>
+                <td>Dashboard spotlight guidance, status update/reservation lock, walking time telemetry, explainable rationale delivery.</td>
+              </tr>
+              <tr>
+                <td><strong>Sensors (S)</strong></td>
+                <td>Simulated ultrasonic ground telemetry, driver entry coordinates (x, y), vehicle preference filter, distance boundary slider.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- TAB 3: ALGORITHM & MATH -->
+        <div class="doc-tab-content" id="doc-algorithm">
+          <h4>3.1 AI Decision-Making Pipeline</h4>
+          <p>The agent executes a multi-stage constraint satisfaction and optimization pipeline:</p>
+          <ol>
+            <li><strong>Percept Ingestion:</strong> Ingest driver entry coordinates $(x_d, y_d)$, vehicle type $T \in \{\text{Regular}, \text{EV}, \text{Disabled}\}$, and max walking distance $D_{\max}$.</li>
+            <li><strong>State Space Partitioning:</strong> Discard all bays where $\text{status} \in \{\text{Occupied}, \text{Reserved}\}$.</li>
+            <li><strong>Type Constraint Satisfaction:</strong> Discard bays where $\text{type} \neq T$.</li>
+            <li><strong>Euclidean Metric Calculation:</strong> Compute distance for all remaining bays:
+              <div class="math-block">
+                Distance(s, \text{driver}) = &radic;((x_s - x_d)&sup2; + (y_s - y_d)&sup2;)
+              </div>
+            </li>
+            <li><strong>Boundary Pruning:</strong> Discard any slot where $\text{Distance} > D_{\max}$.</li>
+            <li><strong>Utility Maximization &amp; Tie-Breaking:</strong>
+              <div class="math-block">
+                U(s) = - \text{Distance}(s, \text{driver})
+              </div>
+              <div class="math-block">
+                s* = \arg\max_{s} U(s) = \arg\min_{s} \text{Distance}(s, \text{driver})
+              </div>
+              <em>Tie-breaking rule:</em> If two slots possess equal distance within $\epsilon = 0.001$, choose the slot with lexicographically lower ID (e.g., P03 before P07).
+            </li>
+          </ol>
+
+          <h4>3.2 Computational Complexity</h4>
+          <ul>
+            <li><strong>Time Complexity:</strong> $O(N)$ where $N$ is the total number of parking spaces (36 in our lot). Distance computation and filtering are linear, followed by $O(K \log K)$ sorting where $K \le N$. Instantaneous response (&lt; 5ms).</li>
+            <li><strong>Space Complexity:</strong> $O(N)$ memory to store bay states and candidate evaluations.</li>
+          </ul>
+        </div>
+
+        <!-- TAB 4: EVALUATION & FUTURE SCOPE -->
+        <div class="doc-tab-content" id="doc-evaluation">
+          <h4>4.1 System Advantages</h4>
+          <ul>
+            <li><strong>Deterministic &amp; Transparent:</strong> Fully explainable AI reasoning with zero black-box obscurity.</li>
+            <li><strong>Resource Efficiency:</strong> Eliminates wasted cruising time and fuel consumption.</li>
+            <li><strong>Specialized Allocation:</strong> Guaranteed support for EV charging and wheelchair accessibility requirements.</li>
+            <li><strong>Fault-Tolerant:</strong> Dynamic fallback recommendations when all preferred slots are occupied.</li>
+          </ul>
+
+          <h4>4.2 Limitations</h4>
+          <ul>
+            <li>Current implementation utilizes simulated IoT telemetry rather than physical ultrasonic hardware.</li>
+            <li>Assumes flat 2D Euclidean distance rather than multi-story elevator routing.</li>
+          </ul>
+
+          <h4>4.3 Future Scope</h4>
+          <ul>
+            <li><strong>Machine Learning Occupancy Forecasting:</strong> Deploy LSTM / GRU neural networks to forecast future slot vacancy.</li>
+            <li><strong>Dynamic Congestion Pricing:</strong> Implement Reinforcement Learning (Q-learning) for supply-demand pricing.</li>
+            <li><strong>Computer Vision Integration:</strong> Deploy YOLOv8 on CCTV streams for real-time license plate and bay occupancy recognition.</li>
+          </ul>
+        </div>
+
+        <!-- TAB 5: VIVA Q&A GUIDE -->
+        <div class="doc-tab-content" id="doc-viva">
+          <h4>College Viva Questions &amp; Model Answers</h4>
+          
+          <div class="viva-qa">
+            <div class="viva-q">Q1: What type of agent is implemented in this project?</div>
+            <div class="viva-a">
+              <strong>Answer:</strong> It is a <em>Utility-Based Goal-Driven Rational Agent</em>. It has an explicit goal (finding an available, type-matched space within maximum distance) and evaluates alternative candidates using a utility function $U(s) = -\text{Distance}(s)$ to select the optimal action that maximizes performance.
+            </div>
+          </div>
+
+          <div class="viva-qa">
+            <div class="viva-q">Q2: How does the agent demonstrate rational behavior?</div>
+            <div class="viva-a">
+              <strong>Answer:</strong> According to Russell &amp; Norvig, an agent is rational if it selects an action that maximizes its expected performance measure given its percept sequence and built-in knowledge. Here, given driver location and slot states, the agent mathematically guarantees selecting the available bay with minimum walking distance.
+            </div>
+          </div>
+
+          <div class="viva-qa">
+            <div class="viva-q">Q3: How do you handle tie-breaking when two spaces have identical distances?</div>
+            <div class="viva-a">
+              <strong>Answer:</strong> We apply a deterministic tie-breaking rule: if $|d(s_1) - d(s_2)| &lt; 0.001$, the agent chooses the space with the lower alphanumeric slot ID (e.g. P02 before P05), ensuring predictable, repeatable rationality.
+            </div>
+          </div>
+
+          <div class="viva-qa">
+            <div class="viva-q">Q4: Why Euclidean distance instead of Manhattan distance?</div>
+            <div class="viva-a">
+              <strong>Answer:</strong> While Manhattan distance is suited for rectangular street grids, pedestrian walking paths within parking lots allow diagonal crossings and direct paths across bays. Euclidean distance accurately models direct physical distance.
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <div class="footer-container">
+      <div class="footer-left">
+        <strong>Smart Parking Management Agent</strong> • Artificial Intelligence Academic Project
+      </div>
+      <div class="footer-right">
+        PEAS Architecture • Utility-Based Rational Agent • Flask &amp; Chart.js
+      </div>
+    </div>
+  </footer>
+
+  <!-- Custom JavaScript File -->
+  <script src="/static/js/script.js"></script>
+</body>
+</html>
